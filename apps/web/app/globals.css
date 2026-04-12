@@ -430,10 +430,19 @@ input {
   font-weight: 700;
 }
 
+.board-compact-status-chip-cooldown {
+  background: #ffffff;
+}
+
 .board-compact-controls-mobile .board-compact-status-chip {
   font-size: 0.68rem;
   background: rgba(15, 23, 42, 0.08);
   color: #334155;
+}
+
+.board-compact-controls-mobile .board-compact-status-chip-cooldown {
+  background: #ffffff;
+  color: var(--stanford-ink);
 }
 
 .board-compact-palette-button {
@@ -637,6 +646,10 @@ input {
   color: var(--stanford-ink);
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.panel-chip-cooldown {
+  background: #ffffff;
 }
 
 .selected-color-chip {

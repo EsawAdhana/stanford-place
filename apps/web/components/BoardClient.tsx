@@ -1478,7 +1478,7 @@ export function BoardClient({
           >
             <div className="board-compact-status">
               <span className="board-compact-status-label">Cooldown</span>
-              <span className="board-compact-status-chip">
+              <span className="board-compact-status-chip board-compact-status-chip-cooldown">
                 {placing ? "Placing" : formatMs(cooldownRemaining)}
               </span>
             </div>
@@ -1590,7 +1590,7 @@ export function BoardClient({
                   <div>
                     <p className="panel-eyebrow">Cooldown</p>
                   </div>
-                  <span className="panel-chip">
+                  <span className="panel-chip panel-chip-cooldown">
                     {placing ? "Placing" : formatMs(cooldownRemaining)}
                   </span>
                 </div>
