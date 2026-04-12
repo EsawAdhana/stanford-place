@@ -431,7 +431,8 @@ input {
 }
 
 .board-compact-status-chip-cooldown {
-  background: #ffffff;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.1);
 }
 
 .board-compact-controls-mobile .board-compact-status-chip {
@@ -441,7 +442,8 @@ input {
 }
 
 .board-compact-controls-mobile .board-compact-status-chip-cooldown {
-  background: #ffffff;
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.1);
   color: var(--stanford-ink);
 }
 
@@ -649,7 +651,8 @@ input {
 }
 
 .panel-chip-cooldown {
-  background: #ffffff;
+  background: rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(15, 23, 42, 0.1);
 }
 
 .selected-color-chip {
