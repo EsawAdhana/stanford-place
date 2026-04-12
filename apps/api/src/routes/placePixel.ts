@@ -117,7 +117,7 @@ export async function registerPlacePixelRoute(
             accepted: false,
             reason: "COOLDOWN",
             nextPlaceAt: userRecord.nextPlaceAt.toISOString(),
-            message: "You must wait before placing another pixel."
+            message: "You must wait 5 seconds before placing another pixel."
           });
         }
 

@@ -1396,7 +1396,7 @@ export function BoardClient({
       <ul className="board-rules-list">
         <li>Click any cell to place your selected color.</li>
         <li>Drag to pan and scroll to zoom around the board.</li>
-        <li>Each placement triggers a one-minute cooldown before your next move.</li>
+        <li>Each placement triggers a 5-second cooldown before your next move.</li>
       </ul>
       <div>
         <p className="panel-eyebrow">Ground rules</p>
@@ -1430,7 +1430,7 @@ export function BoardClient({
                   <span className="board-brand-stat-label">board</span>
                 </div>
                 <div className="board-brand-stat">
-                  <span className="board-brand-stat-value">1 min</span>
+                  <span className="board-brand-stat-value">5 sec</span>
                   <span className="board-brand-stat-label">cooldown</span>
                 </div>
               </div>
@@ -1444,7 +1444,7 @@ export function BoardClient({
               <ul className="board-rules-list">
                 <li>Click any cell to place your selected color.</li>
                 <li>Drag to pan and scroll to zoom around the board.</li>
-                <li>Each placement triggers a one-minute cooldown before your next move.</li>
+                <li>Each placement triggers a 5-second cooldown before your next move.</li>
               </ul>
               <div>
                 <p className="panel-eyebrow">Ground rules</p>

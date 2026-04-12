@@ -33,5 +33,5 @@ Set these in Vercel for Preview and Production:
 ## Production Verification
 
 1. Sign in with a Stanford Google Workspace account.
-2. Place a pixel and confirm the returned cooldown is 1 minute.
+2. Place a pixel and confirm the returned cooldown is 5 seconds.
 3. Confirm Realtime updates arrive in the board UI.

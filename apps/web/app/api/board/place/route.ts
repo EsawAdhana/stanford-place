@@ -53,7 +53,7 @@ export async function POST(request: Request) {
           {
             accepted: false,
             reason: "COOLDOWN",
-            message: "You must wait before placing another pixel."
+            message: "You must wait 5 seconds before placing another pixel."
           },
           { status: 429 }
         );

@@ -1,7 +1,7 @@
 import { z } from "zod";
 export const BOARD_SIZE = 250;
 export const TILE_SIZE = 64;
-export const PLACEMENT_COOLDOWN_MS = 60 * 1000;
+export const PLACEMENT_COOLDOWN_MS = 5 * 1000;
 export const MAX_TILE_COORDINATE = Math.ceil(BOARD_SIZE / TILE_SIZE) - 1;
 export const PALETTE = [
     "#FFFFFF",

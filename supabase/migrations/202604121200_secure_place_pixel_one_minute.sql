@@ -23,7 +23,7 @@ declare
   current_setting public.app_settings%rowtype;
   active_suspension public.suspensions%rowtype;
   placed_at_value timestamptz := now();
-  next_place_value timestamptz := placed_at_value + interval '1 minute';
+  next_place_value timestamptz := placed_at_value + interval '5 seconds';
 begin
   if auth.uid() is distinct from p_user_id then
     raise exception 'authenticated user does not match placement user';
