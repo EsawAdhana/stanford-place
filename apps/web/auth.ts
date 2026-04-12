@@ -58,7 +58,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.email = user.email;
         token.name = user.displayName;
         token.picture = user.image;
-        token.isAdmin = user.isAdmin;
       }
 
       if (typeof token.userId === "string") {
@@ -69,7 +68,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.email = user.email;
           token.name = user.displayName;
           token.picture = user.image;
-          token.isAdmin = user.isAdmin;
         }
       }
 
@@ -98,7 +96,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: user.email,
         displayName: user.displayName,
         image: user.image,
-        isAdmin: user.isAdmin,
         nextPlaceAt: user.nextPlaceAt ?? null
       };
 

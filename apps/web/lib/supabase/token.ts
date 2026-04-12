@@ -11,8 +11,7 @@ function getJwtSecret() {
 export async function createSupabaseAccessToken(user: AppUser) {
   return new SignJWT({
     role: "authenticated",
-    email: user.email,
-    is_admin: user.isAdmin
+    email: user.email
   })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setIssuedAt()

@@ -12,13 +12,3 @@ export async function requireAppUser(): Promise<AppUser> {
 
   return session.appUser;
 }
-
-export async function requireAdminUser() {
-  const user = await requireAppUser();
-
-  if (!user.isAdmin) {
-    throw new RouteError("Admin access required", 403);
-  }
-
-  return user;
-}

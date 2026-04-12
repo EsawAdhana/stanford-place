@@ -18,7 +18,6 @@ Set these in Vercel for Preview and Production:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_JWT_SECRET`
-- `ADMIN_EMAIL` if you want the matching Stanford user to become an admin automatically at sign-in
 
 ## Google OAuth
 
@@ -35,6 +34,4 @@ Set these in Vercel for Preview and Production:
 
 1. Sign in with a Stanford Google Workspace account.
 2. Place a pixel and confirm the returned cooldown is 1 minute.
-3. Try calling `place_pixel` directly with another user's UUID and confirm it is rejected.
-4. Confirm Realtime updates arrive in the board UI.
-5. Confirm the bootstrap admin account can access moderation routes.
+3. Confirm Realtime updates arrive in the board UI.

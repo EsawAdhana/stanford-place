@@ -59,26 +59,8 @@ export async function POST(request: Request) {
         );
       }
 
-      if (message.includes("read-only")) {
-        return NextResponse.json(
-          {
-            accepted: false,
-            reason: "READ_ONLY",
-            message: "The board is currently read-only."
-          },
-          { status: 403 }
-        );
-      }
-
-      if (message.includes("suspend")) {
-        return NextResponse.json(
-          {
-            accepted: false,
-            reason: "SUSPENDED",
-            message: "Your account is currently suspended."
-          },
-          { status: 403 }
-        );
+      if (message.includes("user not found")) {
+        return NextResponse.json({ message: "User not found." }, { status: 404 });
       }
 
       throw new Error(error.message);
@@ -109,6 +91,8 @@ export async function POST(request: Request) {
     if (error instanceof RouteError) {
       return NextResponse.json({ message: error.message }, { status: error.status });
     }
+
+    console.error("Unable to place pixel", error);
 
     return NextResponse.json(
       { message: "Unable to place pixel." },

@@ -48,20 +48,6 @@ export const tileRequestSchema = z.object({
 export const placePixelSchema = coordinateSchema.extend({
     color: z.number().int().min(0).max(PALETTE.length - 1)
 });
-export const adminSuspendSchema = z.object({
-    userId: z.string().uuid(),
-    reason: z.string().min(3).max(500),
-    expiresAt: z.string().datetime().optional()
-});
-export const adminReadOnlySchema = z.object({
-    readOnly: z.boolean()
-});
-export const adminRevertRangeSchema = z.object({
-    minX: z.number().int().min(0).max(BOARD_SIZE - 1),
-    minY: z.number().int().min(0).max(BOARD_SIZE - 1),
-    maxX: z.number().int().min(0).max(BOARD_SIZE - 1),
-    maxY: z.number().int().min(0).max(BOARD_SIZE - 1)
-});
 export const websocketMessageSchema = z.discriminatedUnion("type", [
     z.object({
         type: z.literal("pixel:placed"),

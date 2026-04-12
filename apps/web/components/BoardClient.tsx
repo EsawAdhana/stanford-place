@@ -23,26 +23,13 @@ type SnapshotResponse = {
   recentPlacements: Array<PixelRecord & { userId: string }>;
 };
 
-type AdminState = {
-  readOnly: boolean;
-  suspensions: Array<{
-    id: string;
-    userId: string;
-    email: string;
-    displayName: string | null;
-    reason: string;
-    startsAt: string;
-    expiresAt: string | null;
-  }>;
-};
-
 const MAX_ZOOM_FACTOR = 32;
 const ZOOM_STEP = 1.12;
 const BASE_CELL_SCREEN_PIXELS = 3.2;
 const PIXEL_SNAP_ZOOM_THRESHOLD = 8;
 const TAP_DRAG_THRESHOLD_PX = 8;
-const MOBILE_LAYOUT_BREAKPOINT_PX = 768;
-const MOBILE_LAYOUT_QUERY = `(max-width: ${MOBILE_LAYOUT_BREAKPOINT_PX}px)`;
+const MOBILE_LAYOUT_BREAKPOINT_PX = 1024;
+const MOBILE_LAYOUT_QUERY = `(max-width: ${MOBILE_LAYOUT_BREAKPOINT_PX}px), (hover: none) and (pointer: coarse)`;
 
 type PointerSnapshot = {
   clientX: number;
@@ -121,9 +108,11 @@ function formatMs(ms: number) {
 }
 
 export function BoardClient({
-  initialUser
+  initialUser,
+  initialNow
 }: {
   initialUser: AppUser;
+  initialNow: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -163,7 +152,7 @@ export function BoardClient({
   const cooldownResyncPendingRef = useRef(false);
 
   const [user, setUser] = useState<AppUser>(initialUser);
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(initialNow);
   const [selectedColor, setSelectedColor] = useState(3);
   const [zoom, setZoom] = useState(BASE_CELL_SCREEN_PIXELS);
   const [offsetX, setOffsetX] = useState(BOARD_SIZE / 2);
@@ -182,15 +171,6 @@ export function BoardClient({
     Array<PixelRecord & { userId: string }>
   >([]);
   const [, setOnlineCount] = useState(0);
-  const [adminState, setAdminState] = useState<AdminState | null>(null);
-  const [suspendUserId, setSuspendUserId] = useState("");
-  const [suspendReason, setSuspendReason] = useState("");
-  const [revertRange, setRevertRange] = useState({
-    minX: "0",
-    minY: "0",
-    maxX: "10",
-    maxY: "10"
-  });
 
   const cooldownRemaining = user.nextPlaceAt
     ? new Date(user.nextPlaceAt).getTime() - now
@@ -296,16 +276,6 @@ export function BoardClient({
     []
   );
 
-  const loadAdminState = useCallback(async () => {
-    if (!user.isAdmin) {
-      return;
-    }
-
-    const response = await apiFetch("/api/admin/suspensions");
-    const payload = (await response.json()) as AdminState;
-    setAdminState(payload);
-  }, [apiFetch, user.isAdmin]);
-
   const loadCurrentUser = useCallback(async () => {
     const response = await apiFetch("/api/board/me");
     return (await response.json()) as AppUser;
@@ -322,14 +292,10 @@ export function BoardClient({
       setUser(me);
       setRecentPlacements(snapshot.recentPlacements);
       setOnlineCount(snapshot.onlineCount);
-
-      if (me.isAdmin) {
-        await loadAdminState();
-      }
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Failed to load board.");
     }
-  }, [apiFetch, loadAdminState, loadCurrentUser]);
+  }, [apiFetch, loadCurrentUser]);
 
   const loadVisibleTiles = useCallback(async (options?: { forceReload?: boolean }) => {
     try {
@@ -601,6 +567,30 @@ export function BoardClient({
       const nextWidth = Math.max(1, Math.floor(nextEntry.contentRect.width));
       const nextHeight = Math.max(1, Math.floor(nextEntry.contentRect.height));
 
+      // #region agent log
+      fetch("http://127.0.0.1:7643/ingest/d7f28a3e-3ec9-49dd-bf3f-157e7e358fad", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "6a14f0"
+        },
+        body: JSON.stringify({
+          sessionId: "6a14f0",
+          runId: "initial-debug",
+          hypothesisId: "H2",
+          location: "BoardClient.tsx:604",
+          message: "ResizeObserver measured viewport",
+          data: {
+            nextWidth,
+            nextHeight,
+            viewportClientWidth: viewport.clientWidth,
+            viewportClientHeight: viewport.clientHeight
+          },
+          timestamp: Date.now()
+        })
+      }).catch(() => {});
+      // #endregion
+
       setCanvasSize((current) => {
         if (current.width === nextWidth && current.height === nextHeight) {
           return current;
@@ -627,9 +617,38 @@ export function BoardClient({
 
     if (!hasInitializedViewRef.current) {
       const initialZoom = minimumZoom;
+      const nextOffsetX = getCenteredOffset(BOARD_SIZE, canvasSize.width, initialZoom);
+      const nextOffsetY = getCenteredOffset(BOARD_SIZE, canvasSize.height, initialZoom);
+
+      // #region agent log
+      fetch("http://127.0.0.1:7643/ingest/d7f28a3e-3ec9-49dd-bf3f-157e7e358fad", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "6a14f0"
+        },
+        body: JSON.stringify({
+          sessionId: "6a14f0",
+          runId: "initial-debug",
+          hypothesisId: "H3",
+          location: "BoardClient.tsx:633",
+          message: "Initializing board view",
+          data: {
+            canvasWidth: canvasSize.width,
+            canvasHeight: canvasSize.height,
+            initialZoom,
+            nextOffsetX,
+            nextOffsetY,
+            boardSize: BOARD_SIZE
+          },
+          timestamp: Date.now()
+        })
+      }).catch(() => {});
+      // #endregion
+
       setZoom(initialZoom);
-      setOffsetX(getCenteredOffset(BOARD_SIZE, canvasSize.width, initialZoom));
-      setOffsetY(getCenteredOffset(BOARD_SIZE, canvasSize.height, initialZoom));
+      setOffsetX(nextOffsetX);
+      setOffsetY(nextOffsetY);
       hasInitializedViewRef.current = true;
       return;
     }
@@ -665,7 +684,7 @@ export function BoardClient({
 
     context.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
     context.imageSmoothingEnabled = false;
-    context.fillStyle = "#0f172a";
+    context.fillStyle = "#8c1515";
     context.fillRect(0, 0, canvasWidth, canvasHeight);
 
     const boardHorizontalSpan = getScreenSpan(0, BOARD_SIZE, offsetX, zoom, snapToPixelGrid);
@@ -675,9 +694,39 @@ export function BoardClient({
     const boardWidth = boardHorizontalSpan.size;
     const boardHeight = boardVerticalSpan.size;
 
+    // #region agent log
+    fetch("http://127.0.0.1:7643/ingest/d7f28a3e-3ec9-49dd-bf3f-157e7e358fad", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "6a14f0"
+      },
+      body: JSON.stringify({
+        sessionId: "6a14f0",
+        runId: "initial-debug",
+        hypothesisId: "H1",
+        location: "BoardClient.tsx:680",
+        message: "Canvas render effect entered",
+        data: {
+          canvasWidth,
+          canvasHeight,
+          devicePixelRatio,
+          zoom,
+          offsetX,
+          offsetY,
+          boardLeft,
+          boardTop,
+          boardWidth,
+          boardHeight
+        },
+        timestamp: Date.now()
+      })
+    }).catch(() => {});
+    // #endregion
+
     context.fillStyle = "#ffffff";
     context.fillRect(boardLeft, boardTop, boardWidth, boardHeight);
-    context.strokeStyle = "rgba(15, 23, 42, 0.2)";
+    context.strokeStyle = "#000000";
     context.lineWidth = 1;
     context.strokeRect(boardLeft, boardTop, boardWidth, boardHeight);
 
@@ -769,6 +818,36 @@ export function BoardClient({
       context.lineWidth = 2;
       context.strokeRect(drawX, drawY, drawWidth, drawHeight);
     }
+
+    const centerPixel = context.getImageData(
+      Math.max(0, Math.floor(canvasWidth / 2)),
+      Math.max(0, Math.floor(canvasHeight / 2)),
+      1,
+      1
+    ).data;
+
+    // #region agent log
+    fetch("http://127.0.0.1:7643/ingest/d7f28a3e-3ec9-49dd-bf3f-157e7e358fad", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "6a14f0"
+      },
+      body: JSON.stringify({
+        sessionId: "6a14f0",
+        runId: "initial-debug",
+        hypothesisId: "H4",
+        location: "BoardClient.tsx:789",
+        message: "Canvas center pixel after draw",
+        data: {
+          centerPixel: Array.from(centerPixel),
+          canvasClientWidth: canvas.clientWidth,
+          canvasClientHeight: canvas.clientHeight
+        },
+        timestamp: Date.now()
+      })
+    }).catch(() => {});
+    // #endregion
   }, [
     backingCanvasHeight,
     backingCanvasWidth,
@@ -1246,54 +1325,6 @@ export function BoardClient({
     }
   }, []);
 
-  const submitSuspension = useCallback(async () => {
-    if (!suspendUserId || !suspendReason) {
-      return;
-    }
-
-    await apiFetch("/api/admin/suspensions", {
-      method: "POST",
-      body: JSON.stringify({
-        userId: suspendUserId,
-        reason: suspendReason
-      })
-    });
-
-    setSuspendUserId("");
-    setSuspendReason("");
-    await loadAdminState();
-  }, [apiFetch, loadAdminState, suspendReason, suspendUserId]);
-
-  const toggleReadOnly = useCallback(async () => {
-    if (!adminState) {
-      return;
-    }
-
-    await apiFetch("/api/admin/read-only", {
-      method: "POST",
-      body: JSON.stringify({
-        readOnly: !adminState.readOnly
-      })
-    });
-
-    await loadAdminState();
-  }, [adminState, apiFetch, loadAdminState]);
-
-  const revertSelectedRange = useCallback(async () => {
-    await apiFetch("/api/admin/revert-range", {
-      method: "POST",
-      body: JSON.stringify({
-        minX: Number(revertRange.minX),
-        minY: Number(revertRange.minY),
-        maxX: Number(revertRange.maxX),
-        maxY: Number(revertRange.maxY)
-      })
-    });
-
-    setTileMap({});
-    await loadVisibleTiles({ forceReload: true });
-  }, [apiFetch, loadVisibleTiles, revertRange]);
-
   const palettePanel = (
     <div className="panel panel-compact board-palette-panel">
       <div className="panel-heading">
@@ -1365,7 +1396,7 @@ export function BoardClient({
       <ul className="board-rules-list">
         <li>Click any cell to place your selected color.</li>
         <li>Drag to pan and scroll to zoom around the board.</li>
-        <li>Each placement triggers a short cooldown before your next move.</li>
+        <li>Each placement triggers a one-minute cooldown before your next move.</li>
       </ul>
       <div>
         <p className="panel-eyebrow">Ground rules</p>
@@ -1377,72 +1408,6 @@ export function BoardClient({
       </div>
     </div>
   );
-
-  const adminPanel =
-    user.isAdmin && adminState ? (
-      <details className="panel panel-compact admin-panel">
-        <summary>Admin tools</summary>
-        <button type="button" className="primary-button" onClick={toggleReadOnly}>
-          {adminState.readOnly ? "Disable read-only mode" : "Enable read-only mode"}
-        </button>
-        <div className="admin-form">
-          <input
-            value={suspendUserId}
-            onChange={(event) => setSuspendUserId(event.target.value)}
-            placeholder="User UUID"
-          />
-          <input
-            value={suspendReason}
-            onChange={(event) => setSuspendReason(event.target.value)}
-            placeholder="Suspension reason"
-          />
-          <button type="button" className="secondary-button" onClick={() => void submitSuspension()}>
-            Suspend user
-          </button>
-        </div>
-        <div className="admin-form">
-          <input
-            value={revertRange.minX}
-            onChange={(event) =>
-              setRevertRange((current) => ({ ...current, minX: event.target.value }))
-            }
-            placeholder="minX"
-          />
-          <input
-            value={revertRange.minY}
-            onChange={(event) =>
-              setRevertRange((current) => ({ ...current, minY: event.target.value }))
-            }
-            placeholder="minY"
-          />
-          <input
-            value={revertRange.maxX}
-            onChange={(event) =>
-              setRevertRange((current) => ({ ...current, maxX: event.target.value }))
-            }
-            placeholder="maxX"
-          />
-          <input
-            value={revertRange.maxY}
-            onChange={(event) =>
-              setRevertRange((current) => ({ ...current, maxY: event.target.value }))
-            }
-            placeholder="maxY"
-          />
-          <button type="button" className="secondary-button" onClick={() => void revertSelectedRange()}>
-            Revert range
-          </button>
-        </div>
-        <ul className="activity-list">
-          {adminState.suspensions.map((suspension) => (
-            <li key={suspension.id}>
-              <span>{suspension.email}</span>
-              <span>{suspension.reason}</span>
-            </li>
-          ))}
-        </ul>
-      </details>
-    ) : null;
 
   return (
     <div className="page-shell">
@@ -1465,7 +1430,7 @@ export function BoardClient({
                   <span className="board-brand-stat-label">board</span>
                 </div>
                 <div className="board-brand-stat">
-                  <span className="board-brand-stat-value">5 sec</span>
+                  <span className="board-brand-stat-value">1 min</span>
                   <span className="board-brand-stat-label">cooldown</span>
                 </div>
               </div>
@@ -1479,7 +1444,7 @@ export function BoardClient({
               <ul className="board-rules-list">
                 <li>Click any cell to place your selected color.</li>
                 <li>Drag to pan and scroll to zoom around the board.</li>
-                <li>Each placement triggers a short cooldown before your next move.</li>
+                <li>Each placement triggers a one-minute cooldown before your next move.</li>
               </ul>
               <div>
                 <p className="panel-eyebrow">Ground rules</p>
@@ -1568,7 +1533,6 @@ export function BoardClient({
                 {feedMenuOpen ? (
                   <div className="board-compact-feed-menu">
                     {activityPanel}
-                    {adminPanel}
                   </div>
                 ) : null}
                 <button
@@ -1640,7 +1604,6 @@ export function BoardClient({
               {palettePanel}
 
               {activityPanel}
-              {adminPanel}
             </aside>
           </>
         )}

@@ -25,7 +25,6 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=replace-me
 SUPABASE_SERVICE_ROLE_KEY=replace-me
 SUPABASE_JWT_SECRET=replace-me
-ADMIN_EMAIL=your_sunetid@stanford.edu
 ```
 
 7. Start the app:
@@ -49,9 +48,8 @@ The app runs on `http://localhost:3000`. There is no separate API or Redis proce
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `SUPABASE_JWT_SECRET`
-   - `ADMIN_EMAIL` if you want the first matching Stanford account to be promoted to admin automatically on sign-in
 5. Add the production Google OAuth callback URL: `https://<your-domain>/api/auth/callback/google`.
-6. Deploy a preview build first and verify Stanford sign-in, pixel placement, Realtime, and admin access before promoting to production.
+6. Deploy a preview build first and verify Stanford sign-in, pixel placement, and Realtime before promoting to production.
 
 ## Notable Endpoints
 
@@ -59,9 +57,6 @@ The app runs on `http://localhost:3000`. There is no separate API or Redis proce
 - `GET /api/board/snapshot`: Board metadata and recent placements.
 - `GET /api/board/tiles?tileX=0&tileY=0`: Visible tile fetch backed by Supabase.
 - `POST /api/board/place`: Transactional placement via the `place_pixel` SQL function.
-- `GET /api/admin/suspensions`: Current moderation state.
-- `POST /api/admin/read-only`: Toggle freeze mode.
-- `POST /api/admin/revert-range`: Temporarily disabled for launch until it is moved into a single transaction.
 - `GET /api/supabase/token`: Mint a short-lived Supabase JWT for browser Realtime access.
 
 ## Operational Notes
@@ -69,7 +64,6 @@ The app runs on `http://localhost:3000`. There is no separate API or Redis proce
 - Stanford-only login is enforced by verifying the Google ID token server-side and requiring `hd = stanford.edu`.
 - `placements` is append-only. `current_pixels` stores the latest visible board state.
 - Cooldown enforcement lives in Supabase Postgres inside `place_pixel(...)`, not in client code.
-- `place_pixel(...)` now verifies that the caller's `auth.uid()` matches the placement `user_id` before any write occurs.
+- `place_pixel(...)` is executed by the server with the Supabase service-role key after NextAuth has resolved the current Stanford user.
 - Browser Realtime subscriptions use a short-lived custom Supabase JWT minted from the Next session.
-- If `ADMIN_EMAIL` is set, the matching Stanford user is promoted to admin on sign-in. Otherwise, promote admins manually in `app_users`.
 # StanfordPlace

@@ -57,35 +57,14 @@ export const placePixelSchema = coordinateSchema.extend({
   color: z.number().int().min(0).max(PALETTE.length - 1)
 });
 
-export const adminSuspendSchema = z.object({
-  userId: z.string().uuid(),
-  reason: z.string().min(3).max(500),
-  expiresAt: z.string().datetime().optional()
-});
-
-export const adminReadOnlySchema = z.object({
-  readOnly: z.boolean()
-});
-
-export const adminRevertRangeSchema = z.object({
-  minX: z.number().int().min(0).max(BOARD_SIZE - 1),
-  minY: z.number().int().min(0).max(BOARD_SIZE - 1),
-  maxX: z.number().int().min(0).max(BOARD_SIZE - 1),
-  maxY: z.number().int().min(0).max(BOARD_SIZE - 1)
-});
-
 export type PlacePixelInput = z.infer<typeof placePixelSchema>;
 export type TileRequest = z.infer<typeof tileRequestSchema>;
-export type AdminSuspendInput = z.infer<typeof adminSuspendSchema>;
-export type AdminReadOnlyInput = z.infer<typeof adminReadOnlySchema>;
-export type AdminRevertRangeInput = z.infer<typeof adminRevertRangeSchema>;
 
 export type AppUser = {
   id: string;
   email: string;
   displayName: string | null;
   image: string | null;
-  isAdmin: boolean;
   nextPlaceAt: string | null;
 };
 
@@ -94,7 +73,6 @@ export type AppTokenClaims = {
   email: string;
   name: string | null;
   picture: string | null;
-  isAdmin: boolean;
 };
 
 export type PixelRecord = {
@@ -125,7 +103,7 @@ export type PlacementResponse = {
 
 export type PlacementRejection = {
   accepted: false;
-  reason: "COOLDOWN" | "READ_ONLY" | "SUSPENDED" | "RATE_LIMITED";
+  reason: "COOLDOWN" | "RATE_LIMITED";
   nextPlaceAt?: string;
   message: string;
 };
