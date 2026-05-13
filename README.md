@@ -10,16 +10,6 @@ npm workspaces with two packages and a Supabase backend.
 - `packages/shared` — shared board constants, validation schemas, API types.
 - `supabase/migrations` — Postgres schema, RLS policies, and the `place_pixel` SQL function.
 
-## Setup
-
-```bash
-cp apps/web/.env.example apps/web/.env.local
-npm install
-npm run dev
-```
-
-Before running for the first time, create a Supabase project, apply every SQL file in `supabase/migrations/` in order, and enable Realtime for `current_pixels`, `placements`, and `app_users`. Create a Google OAuth client with the callback `http://localhost:3000/api/auth/callback/google`, then fill in `apps/web/.env.local` with the seven `AUTH_*` and `*SUPABASE*` values listed in `.env.example`.
-
 ## Endpoints worth knowing
 
 - `GET /api/board/me` — current user and cooldown state
